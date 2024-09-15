@@ -1,0 +1,21 @@
+VUX:ooj0>rk#h
+Zxcv0987!!
+CREATE USER 'Chung'@'%' IDENTIFIED BY 'Zxcv0987';
+
+CREATE USER 'Chung'@'192.168.1.4' IDENTIFIED BY 'Zxcv0987';
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'Zxcv0987';
+
+GRANT ALL PRIVILEGES ON *.* TO 'Chung'@'%' WITH GRANT OPTION;
+
+root
+Zxcv0987
+
+git 
+Zxcv0987Chung
+
+DB
+trpgdata
+admin
+Zxcv0987
+
+python3 -m flask run
