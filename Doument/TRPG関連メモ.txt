@@ -1,0 +1,31 @@
+TRPG自作アプリ用メモ
+
+
+GIT
+	Zxcv0987Chung
+
+
+Database
+	connection:myTRPG
+	user:root
+	password:chung1025
+	url:127.0.0.1:3306/TRPG
+	DBname:TRPG
+
+DDNS
+	site:noip.com
+	acount:chungjoon1.1@gmail.com
+	password:Zxcv0987
+	hostname:trpg.serveblog.net
+	servername:TRPG
+	UserName:pdzg5mf@ddnskey.com
+	Password:ZfwVeukxnv5g
+	
+	
+Buffalo
+	user:admin
+	password:r8mx85sb
+	
+
+Code:python -m flask run
+
