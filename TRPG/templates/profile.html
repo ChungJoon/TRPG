@@ -9,12 +9,18 @@
 	<h1 class="text-4xl font-bold mb-6">{{ character.label }}専用ページ</h1>
 	<hr>
 	
+	<form method="POST" action="{{ url_for('profile', character_id=character.id ) }}" class="ml-2" enctype="multipart/form-data">
 	<h2 class="text-2xl font-semibold mb-4">キャラクター名: {{ character.label }}</h2>
-	<img src="{{ character.image_url }}" alt="{{ character.name }}" class="character-image mb-3">
+	{% if character.image_file %}
+	<img src="{{ url_for('static', filename='uploads/' + character.image_file) }}" alt="{{ character.name }}" class="character-image mb-3 w-48 h-48 object-cover rounded-md">
+	{% endif %}
+	<div class="form-group">
+		<label for="image">画像ファイル:</label>
+		<input type="file" id="image" name="image" class="w-full">
+	</div>
 	
 	<br>
 	
-	<form method="POST" action="{{ url_for('profile', character_id=character.id ) }}" class="ml-2">
 	<div class="xl:flex lg:w-full">
 		<!-- 左側: キャラクター情報 -->
 		<div class="font-medium w-full mr-8">

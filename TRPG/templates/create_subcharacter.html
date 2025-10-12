@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<form method="POST" action="{{ url_for('create_subcharacter', character_id=character.id ) }}" class="ml-2">
+<form method="POST" action="{{ url_for('create_subcharacter', character_id=character.id ) }}" class="ml-2" enctype="multipart/form-data">
     <div class="container mt-4" style="max-width:64rem">
         <h3 class="text-3xl font-semibold mb-4">CPU/魔物作成ページ情報</h3>
         <h4 class="font-semibold mb-1">メイン情報の名前と部位1の名前は必須です。1部位のみの時は本体等の記述をしてください。</h3>
@@ -31,6 +31,10 @@
                     <option value="その他">その他</option>
                 </select>
             </div>
+        </div>
+        <div class="mb-4">
+            <label for="image">画像:</label>
+            <input type="file" id="image" name="image" class="w-full bg-gray-800 rounded-md p-2">
         </div>
         <div class="mb-4 mr-4">
             <label for="detail">詳細:</label>

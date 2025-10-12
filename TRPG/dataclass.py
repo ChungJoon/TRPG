@@ -58,6 +58,7 @@ class Character(db.Model):
     money = db.Column(db.Integer)
     debt = db.Column(db.Integer)
     honor = db.Column(db.Integer)
+    image_file = db.Column(db.String(100), nullable=True)
 
 
     def __repr__(self):
@@ -479,6 +480,7 @@ class SubCharacter(db.Model):
     magic_power = db.Column(db.Integer, default=0)
     type = db.Column(db.String(45), default=None)
     partnum = db.Column(db.Integer, default=0)
+    image_file = db.Column(db.String(100), nullable=True)
 
     def __repr__(self):
         return f"SubCharacter(id={self.id}, name='{self.name}')"

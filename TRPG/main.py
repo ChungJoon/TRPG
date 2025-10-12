@@ -4,7 +4,8 @@ from sqlalchemy import inspect,func
 from flask_cors import CORS
 from jinja2 import Template
 from flask_socketio import SocketIO
-
+import os
+from werkzeug.utils import secure_filename
 
 db = SQLAlchemy()
 
@@ -12,14 +13,24 @@ app = Flask(__name__)
 app.secret_key = 'ds'  # セッションの暗号化キーを設定
 
 # データベース設定
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:Zxcv0987@dbtrpg.crk2e8m6wj6j.ap-northeast-1.rds.amazonaws.com:3306/TRPG'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:chung1025@127.0.0.1:3306/TRPG'
 # 例: 'mysql+pymysql://root:password@localhost:3306/mydatabase'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# アップロードフォルダの設定
+UPLOAD_FOLDER = 'C:/Users/j-Chu/OneDrive/デスクトップ/WEB/TRPG/static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # データベースオブジェクトの作成
 db = SQLAlchemy(app)
 
 socketio = SocketIO(app)
+
+# ファイルの拡張子をチェックする関数
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Custom filter to use getattr in Jinja2 templates
 @app.template_filter('getattr')
@@ -151,6 +162,13 @@ def profile(character_id):
         UsableMagics.append(magic)
 
     if request.method == 'POST':
+        # 画像アップロード処理
+        file = request.files.get('image')
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            character.image_file = filename
+
         # POSTリクエスト処理、フォームのデータを取得し、必要な操作を実行する
         character.sex = request.form['sex']
         character.type = request.form['type']
@@ -263,12 +281,20 @@ def create_subcharacter(character_id):
         if sub_name and subcharacter is None and request.form.get('part_1_name'):
             items = request.form
 
+            # 画像アップロード処理
+            file = request.files['image']
+            image_filename = None
+            if file and allowed_file(file.filename):
+                image_filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
+
             new_sub = SubCharacter(
                         name = sub_name,
                         related_id = character_id,
                         Level = request.form.get('Level'),
                         type = request.form.get('type'),
-                        detail = request.form.get('detail')
+                        detail = request.form.get('detail'),
+                        image_file=image_filename
                     )
             
             db.session.add(new_sub)
@@ -402,6 +428,13 @@ def edit_subcharacter(character_id,subcharacter_id):
                         db.session.commit()
 
             if action == 'save':
+                # 画像アップロード処理
+                file = request.files['image']
+                if file and allowed_file(file.filename):
+                    image_filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
+                    subcharacter.image_file = image_filename
+
                 subcharacter.name = request.form.get('name')
                 subcharacter.Level = request.form.get('Level')
                 subcharacter.type = request.form.get('type')
@@ -1216,4 +1249,4 @@ def handle_connect():
     print('Client connected')
 
 if __name__ == "__main__":
-    socketio.run(port=8000, host="0.0.0.0", debug=True)
+    socketio.run(port=5888, host="0.0.0.0", debug=True)
