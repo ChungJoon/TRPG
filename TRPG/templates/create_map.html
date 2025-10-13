@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}マップ作成{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-silver-400 mb-4">マップ作成</h1>
+
+    <form method="POST" action="{{ url_for('create_map', character_id=character.id) }}" enctype="multipart/form-data" class="bg-gray-800 p-6 rounded-lg shadow-md">
+        <div class="mb-4">
+            <label for="name" class="block text-sm font-medium text-gray-300">マップ名:</label>
+            <input type="text" id="name" name="name" required
+                   class="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white">
+        </div>
+        <div class="mb-4">
+            <label for="description" class="block text-sm font-medium text-gray-300">説明:</label>
+            <textarea id="description" name="description" rows="4"
+                      class="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md text-white"></textarea>
+        </div>
+        <div class="mb-4">
+            <label for="image" class="block text-sm font-medium text-gray-300">マップ画像:</label>
+            <input type="file" id="image" name="image" accept="image/*"
+                   class="mt-1 block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+        </div>
+        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            マップを作成
+        </button>
+    </form>
+</div>
+{% endblock %}

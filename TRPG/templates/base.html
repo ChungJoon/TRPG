@@ -55,9 +55,6 @@
 	        <a href="{{ url_for('home', character_id=character.id) }}" class="flex items-center p-2 text-white-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"">ホーム</a>
 	    </li>
         <li>
-	        <a href="{{ url_for('login2', character_id=character.id) }}" class="flex items-center p-2 text-white-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"">ログインフォーム</a>
-	    </li>
-        <li>
 	        <a href="{{ url_for('profile', character_id=character.id)}}" class="flex items-center p-2 text-white-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"">プロフィール</a>
 	    </li>
         <li>
@@ -75,11 +72,12 @@
     	<li>
 	        <a href="{{ url_for('unit', character_id=character.id) }}" class="flex items-center p-2 text-white-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">ユニット一覧</a>
     	</li>
-    	<li>
-	        <a href="{{ url_for('battlefield', character_id=character.id) }}" class="flex items-center p-2 text-white-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">バトル</a>
-    	</li>
-    	</ul>
-    </div>
+    		    	<li>
+    		        <a href="{{ url_for('battlefield', character_id=character.id) }}" class="flex items-center p-2 text-white-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">バトル</a>
+    		    	</li>
+    		    		    	<li>
+    		    		        <a href="{{ url_for('map_list', character_id=character.id) }}" class="flex items-center p-2 text-white-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group">マップ一覧</a>
+    		    		    	</li>    		    	</ul>    </div>
     </aside>
 
     <!-- コンテンツ -->

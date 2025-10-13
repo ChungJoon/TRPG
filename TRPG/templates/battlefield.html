@@ -578,6 +578,13 @@
 	        targetSelection.innerHTML = '';
 	        actorSelection.innerHTML = '自分';
 
+            const placeholder = document.createElement('option');
+            placeholder.textContent = 'ターゲットを選択';
+            placeholder.value = '';
+            placeholder.disabled = true;
+            placeholder.selected = true;
+            targetSelection.appendChild(placeholder);
+
 	        const allUnits = [
 	            ...friendFront.querySelectorAll('.draggable'),
 	            ...friendMiddle.querySelectorAll('.draggable'),
@@ -680,13 +687,15 @@
         
     });
     
-    //AJAX
-	document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('command-form');
-        const resultOutput = document.getElementById('result-output');
-
-        form.addEventListener('submit', function (event) {
-            event.preventDefault(); // ページリロードを防ぐ
+    	//AJAX
+    	document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('command-form');
+            const resultOutput = document.getElementById('result-output');
+    
+            // 初期ロード時に最下部へスクロール
+            resultOutput.scrollTop = resultOutput.scrollHeight;
+    
+            form.addEventListener('submit', function (event) {            event.preventDefault(); // ページリロードを防ぐ
 
             const formData = new FormData(form); // フォームのデータを取得
 

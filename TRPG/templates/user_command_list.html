@@ -39,6 +39,14 @@ Command Execution
                             <label for="explain-{{ command.id }}" class="block text-sm font-medium text-gray-200">説明</label>
                             <input type="text" id="explain-{{ command.id }}" name="explain" value="{{ command.explain }}" class="block w-full bg-gray-700 text-gray-200 rounded border border-gray-600 p-2">
                         </div>
+                        <div class="flex items-center my-2">
+                            <input id="use_sp1-{{ command.id }}" name="use_sp1" type="checkbox" value="true" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2" {% if command.use_sp1 %}checked{% endif %}>
+                            <label for="use_sp1-{{ command.id }}" class="ml-2 text-sm font-medium text-gray-300">sp1を使用する</label>
+                            <input id="use_sp2-{{ command.id }}" name="use_sp2" type="checkbox" value="true" class="w-4 h-4 ml-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2" {% if command.use_sp2 %}checked{% endif %}>
+                            <label for="use_sp2-{{ command.id }}" class="ml-2 text-sm font-medium text-gray-300">sp2を使用する</label>
+                            <input id="use_sp3-{{ command.id }}" name="use_sp3" type="checkbox" value="true" class="w-4 h-4 ml-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2" {% if command.use_sp3 %}checked{% endif %}>
+                            <label for="use_sp3-{{ command.id }}" class="ml-2 text-sm font-medium text-gray-300">sp3を使用する</label>
+                        </div>
                         <div>
                             <button type="submit" name="action" value="save" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">保存</button>
                             <button type="submit" name="action" value="delete" class="ml-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">削除</button>
@@ -76,6 +84,14 @@ Command Execution
                         <div>
                             <label for="explain-{{ command.id }}" class="block text-sm font-medium text-gray-200">説明</label>
                             <input type="text" id="explain-{{ command.id }}" name="explain" value="{{ command.explain }}" class="block w-full bg-gray-700 text-gray-200 rounded border border-gray-600 p-2">
+                        </div>
+                        <div class="flex items-center my-2">
+                            <input id="use_sp1-{{ command.id }}" name="use_sp1" type="checkbox" value="true" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2" {% if command.use_sp1 %}checked{% endif %}>
+                            <label for="use_sp1-{{ command.id }}" class="ml-2 text-sm font-medium text-gray-300">sp1を使用する</label>
+                            <input id="use_sp2-{{ command.id }}" name="use_sp2" type="checkbox" value="true" class="w-4 h-4 ml-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2" {% if command.use_sp2 %}checked{% endif %}>
+                            <label for="use_sp2-{{ command.id }}" class="ml-2 text-sm font-medium text-gray-300">sp2を使用する</label>
+                            <input id="use_sp3-{{ command.id }}" name="use_sp3" type="checkbox" value="true" class="w-4 h-4 ml-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2" {% if command.use_sp3 %}checked{% endif %}>
+                            <label for="use_sp3-{{ command.id }}" class="ml-2 text-sm font-medium text-gray-300">sp3を使用する</label>
                         </div>
                         <div>
                             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">保存</button>

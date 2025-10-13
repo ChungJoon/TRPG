@@ -36,17 +36,23 @@ def process_command(command_input):
     
     if match:
         variable_name = match.group(1)
-        command = match.group(2).strip()
-        command = replace_variables(command)
-        log_message, output_value = execute_single_command(command)
+        command_part = match.group(2).strip()
+
+        if '+' in command_part:
+            log_message, output_value = sub_code(command_part)
+        else:
+            command_part = replace_variables(command_part)
+            log_message, output_value = execute_single_command(command_part)
+
         variables[variable_name] = output_value  # 変数に値を格納
         return f"{log_message} > {variable_name} に値を代入しました。", output_value
     else:
-        if "loop" in command_input:
-            command = command_input
+        # No assignment, just a command
+        if '+' in command_input:
+            return sub_code(command_input)
         else:
             command = replace_variables(command_input)
-        return execute_single_command(command)
+            return execute_single_command(command)
 
 def replace_variables(command):
     variable_pattern = r'\$(\w+)'  # $variable の形式で変数を検出
@@ -219,8 +225,64 @@ def execute_single_command(command):
             elif command_name == 'give_magicaldamage':
                 return give_magicaldamage(*match.groups())
     
+    # setsp1コマンドの正規表現
+    setsp1_pattern = r'^setsp1\((.*)\)$'
+    match = re.match(setsp1_pattern, command)
+    if match:
+        return setsp1(match.group(1))
+
+    setsp2_pattern = r'^setsp2\((.*)\)$'
+    match = re.match(setsp2_pattern, command)
+    if match:
+        return setsp2(match.group(1))
+
+    setsp3_pattern = r'^setsp3\((.*)\)$'
+    match = re.match(setsp3_pattern, command)
+    if match:
+        return setsp3(match.group(1))
+
     log_message = f'サポートされていないコマンドです: {command}'
     return log_message, None
+
+def setsp1(command_string):
+    from dataclass import Unit
+    unit = Unit.query.filter_by(name=Actor).first()
+    if unit:
+        unit.sp1 = command_string
+        db.session.add(unit)
+        db.session.commit()
+        log_message = f"{Actor}のsp1にコマンドを設定しました: {command_string}"
+        return log_message, command_string
+    else:
+        log_message = f"ユニットが見つかりません: {Actor}"
+        return log_message, None
+
+def setsp2(command_string):
+    from dataclass import Unit
+    unit = Unit.query.filter_by(name=Actor).first()
+    if unit:
+        unit.sp2 = command_string
+        db.session.add(unit)
+        db.session.commit()
+        log_message = f"{Actor}のsp2にコマンドを設定しました: {command_string}"
+        return log_message, command_string
+    else:
+        log_message = f"ユニットが見つかりません: {Actor}"
+        return log_message, None
+
+def setsp3(command_string):
+    from dataclass import Unit
+    unit = Unit.query.filter_by(name=Actor).first()
+    if unit:
+        unit.sp3 = command_string
+        db.session.add(unit)
+        db.session.commit()
+        log_message = f"{Actor}のsp3にコマンドを設定しました: {command_string}"
+        return log_message, command_string
+    else:
+        log_message = f"ユニットが見つかりません: {Actor}"
+        return log_message, None
+
 
 def loop(init, code, trigger):
     count = 0

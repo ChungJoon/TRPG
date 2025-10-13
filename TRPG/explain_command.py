@@ -76,6 +76,27 @@ basic_commands = [
         'details': '真語魔法などの魔法種類を指定してユニットの魔法レベルを取得する。',
         'example': 'get_magiclevel(アデル,真語魔法)'
     },
+    {
+        'name': 'setsp1(command)',
+        'description': 'command:任意のコマンド文字列',
+        'return': '設定したコマンド文字列',
+        'details': '実行者のsp1スロットに指定したコマンドを記憶させます。',
+        'example': 'setsp1(setstatus($self,命中,1))'
+    },
+    {
+        'name': 'setsp2(command)',
+        'description': 'command:任意のコマンド文字列',
+        'return': '設定したコマンド文字列',
+        'details': '実行者のsp2スロットに指定したコマンドを記憶させます。',
+        'example': 'setsp2(heal($target,10)+setstatus($self,MP,-10))'
+    },
+    {
+        'name': 'setsp3(command)',
+        'description': 'command:任意のコマンド文字列',
+        'return': '設定したコマンド文字列',
+        'details': '実行者のsp3スロットに指定したコマンドを記憶させます。',
+        'example': 'setsp3(d=dice(2,6)+setstatus($self,基本ダメージ,$d))'
+    },
 ]
 caliculation_commands = [
     {

@@ -306,6 +306,9 @@ class UserCommand(db.Model):
     name = db.Column(db.String(45), unique=True, nullable=False)
     command = db.Column(db.String(9945), nullable=True)
     explain = db.Column(db.String(245), nullable=True)
+    use_sp1 = db.Column(db.Boolean, default=False, nullable=False)
+    use_sp2 = db.Column(db.Boolean, default=False, nullable=False)
+    use_sp3 = db.Column(db.Boolean, default=False, nullable=False)
 
 
     def __repr__(self):
@@ -354,6 +357,9 @@ class Unit(db.Model):
     魔法行使判定 = db.Column(db.Integer, default=0, nullable=True)
     魔法耐性 = db.Column(db.Integer, default=0, nullable=True)
     カウンター = db.Column(db.Integer, default=0, nullable=True)
+    sp1 = db.Column(db.String(9945), nullable=True)
+    sp2 = db.Column(db.String(9945), nullable=True)
+    sp3 = db.Column(db.String(9945), nullable=True)
 
     def __repr__(self):
         return f"Unit(id={self.id}, name='{self.name}')"
@@ -655,3 +661,14 @@ class GameLog(db.Model):
     def __repr__(self):
         return f'<GameLog {self.name}>'
 
+class Map(db.Model):
+    __tablename__ = 'Map'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    image_file = db.Column(db.String(100), nullable=True)
+    related_id = db.Column(db.Integer, db.ForeignKey('Character.id'), nullable=False)
+
+    def __repr__(self):
+        return f"<Map(id={self.id}, name='{self.name}')>"

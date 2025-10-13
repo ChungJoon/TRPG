@@ -32,13 +32,8 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Custom filter to use getattr in Jinja2 templates
-@app.template_filter('getattr')
-def getattr_filter(obj, attr):
-    return getattr(obj, attr)
-
-# Register the filter with Jinja2
-app.jinja_env.filters['getattr'] = getattr_filter
+# モデルのインポートはdb初期化後に行う
+from dataclass import User,GameLog, UserCommand, Unit, Character, Job, MagicTable, Skill, SubCharacter, SubCharacterPart, Weapon, Protector, Equipment, Memo, Bullet, BulletBox
 
 # コマンドのログを保存するリスト
 command_logs = []
@@ -57,65 +52,52 @@ EnemyFrontUnits = []
 EnemyMidleUnits = []
 EnemyBackUnits = []
 
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    from dataclass import User,GameLog
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def handle_login():
+    if request.method == 'GET':
+        return redirect(url_for('index'))
+
+    from dataclass import User, Character
     if request.method == 'POST':
         user_name = request.form['id']
         password = request.form['pwd']
-        action = request.form.get('action')  # クリックされたボタンのvalueを取得
+        action = request.form.get('action')
 
         if action == 'login':
-            # データベースからユーザーを検索
             user = User.query.filter_by(name=user_name).first()
             if user and user.check_password(password):
                 flash('ログイン成功')
                 session['username'] = user.name
-                # return profile(user.id)
-                return redirect(url_for('profile', character_id=user.id))
+                
+                character_obj = Character.query.filter_by(name=user.name).first()
+                if not character_obj:
+                    character_obj = Character.query.filter_by(label=user.name).first()
+                
+                if character_obj:
+                    return redirect(url_for('profile', character_id=character_obj.id))
+                else:
+                    flash('ログイン成功しましたが、関連するキャラクターが見つかりません。キャラクターを作成してください。')
+                    return render_template('index.html')
             else:
                 flash('ユーザーIDまたはパスワードが間違っています')
-                return render_template('login.html')
+                return render_template('index.html')
         elif action == 'register':
-
             user = User.query.filter_by(name=user_name).first()
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
-
-            flash('ユーザー登録が完了しました')
-            return redirect(url_for('login'))
-        
-    return render_template('login.html')
-
-@app.route('/login/<int:character_id>', methods=['GET', 'POST'])
-def login2(character_id):
-    from dataclass import User,Character
-    character = Character.query.get_or_404(character_id)
-    if request.method == 'POST':
-        user_name = request.form['id']
-        password = request.form['pwd']
-        action = request.form.get('action')  # クリックされたボタンのvalueを取得
-
-        if action == 'login':
-            # データベースからユーザーを検索
-            user = User.query.filter_by(name=user_name).first()
-
-            if user and user.check_password(password):
-                session['username'] = user.name
-                # return profile(user.id)
-                return redirect(url_for('profile', character_id=user.id))
+            if user:
+                flash('そのユーザー名はすでに存在します')
+                return render_template('index.html')
             else:
-                return render_template('login2.html')
-        
-        elif action == 'register':
-
-            user = User.query.filter_by(name=user_name).first()
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
-
-    return render_template('login2.html',character=character)
+                new_user = User(name=user_name)
+                new_user.set_password(password)
+                db.session.add(new_user)
+                db.session.commit()
+                flash('ユーザー登録が完了しました')
+                return redirect(url_for('index'))
+    return render_template('index.html')
 
 
 @app.route("/user")
@@ -261,7 +243,7 @@ def subcharacter(character_id):
     from dataclass import Character,SubCharacter
     character = Character.query.get_or_404(character_id)
     subcharacters=SubCharacter.query.filter_by(type="CPU").all()
-    monsters=SubCharacter.query.filter_by(related_id=character_id,type="魔物").all()
+    monsters=SubCharacter.query.filter_by(related_id=character.id,type="魔物").all()
 
     if request.method == 'POST':
         return render_template('subcharacter.html', character=character, subcharacters=subcharacters, monsters=monsters)
@@ -299,40 +281,6 @@ def create_subcharacter(character_id):
             
             db.session.add(new_sub)
             db.session.commit()
-
-            for key, value in items.items():
-                
-                if key.startswith("part_") and key.endswith("_number"):
-                    value
-                    partkey = f"part_{value}_"
-
-                    if request.form.get(f'{partkey}name') != "":
-                        new_subPart = SubCharacterPart(
-                            name = request.form.get(f'{partkey}name'),
-                            related_id = new_sub.id,
-                            HP = request.form.get(f'{partkey}HP'),
-                            MP = request.form.get(f'{partkey}MP'),
-                            Accuracy = request.form.get(f'{partkey}Accuracy'),
-                            Evasion = request.form.get(f'{partkey}Evasion'),
-                            Defence = request.form.get(f'{partkey}Defence'),
-                            MagicDefence = request.form.get(f'{partkey}MagicDefence'),
-                            Quickness = request.form.get(f'{partkey}Require_Quickness'),
-                            Knowledge = request.form.get(f'{partkey}Knowledge'),
-                            Require_knowledge = request.form.get(f'{partkey}Require_knowledge'),
-                            VID = request.form.get(f'{partkey}VID'),
-                            MND = request.form.get(f'{partkey}MND'),
-                            detail = request.form.get(f'{partkey}detail'),
-                            weakpoint = request.form.get(f'{partkey}weakpoint'),
-                            damage = request.form.get(f'{partkey}damage'),
-                            magic_power = request.form.get(f'{partkey}magic_power'),
-                            partnumber = request.form.get(f'{partkey}number')
-                        )
-
-                        new_sub.partnum = value
-
-                        db.session.add(new_subPart)
-                        db.session.add(new_sub)
-                        db.session.commit()
 
     return render_template('create_subcharacter.html', character=character)
 
@@ -382,7 +330,7 @@ def edit_subcharacter(character_id,subcharacter_id):
                                 Evasion = request.form.get(f'{partkey}Evasion'),
                                 Defence = request.form.get(f'{partkey}Defence'),
                                 MagicDefence = request.form.get(f'{partkey}MagicDefence'),
-                                Quickness = request.form.get(f'{partkey}Require_Quickness'),
+                                Quickness = request.form.get(f'{partkey}Quickness'),
                                 Knowledge = request.form.get(f'{partkey}Knowledge'),
                                 Require_knowledge = request.form.get(f'{partkey}Require_knowledge'),
                                 VID = request.form.get(f'{partkey}VID'),
@@ -408,7 +356,7 @@ def edit_subcharacter(character_id,subcharacter_id):
                             subpart.Evasion = request.form.get(f'{partkey}Evasion'),
                             subpart.Defence = request.form.get(f'{partkey}Defence'),
                             subpart.MagicDefence = request.form.get(f'{partkey}MagicDefence'),
-                            subpart.Quickness = request.form.get(f'{partkey}Require_Quickness'),
+                            subpart.Quickness = request.form.get(f'{partkey}Quickness'),
                             subpart.Knowledge = request.form.get(f'{partkey}Knowledge'),
                             subpart.Require_knowledge = request.form.get(f'{partkey}Require_knowledge'),
                             subpart.VID = request.form.get(f'{partkey}VID'),
@@ -428,13 +376,6 @@ def edit_subcharacter(character_id,subcharacter_id):
                         db.session.commit()
 
             if action == 'save':
-                # 画像アップロード処理
-                file = request.files['image']
-                if file and allowed_file(file.filename):
-                    image_filename = secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
-                    subcharacter.image_file = image_filename
-
                 subcharacter.name = request.form.get('name')
                 subcharacter.Level = request.form.get('Level')
                 subcharacter.type = request.form.get('type')
@@ -761,7 +702,7 @@ def settings(character_id):
 @app.route('/logout')
 def logout():
     session.pop('username', None)  # セッションからユーザー名を削除
-    return redirect(url_for('form'))
+    return redirect(url_for('index'))
 
 @app.route('/apply')
 def apply(character_id):
@@ -771,19 +712,41 @@ def apply(character_id):
 # 新しいルートの追加
 @app.route("/battle_command/<int:character_id>", methods=['GET', 'POST'])
 def battle_command(character_id):
-    from dataclass import Character,GameLog
+    from dataclass import Character,GameLog, UserCommand, Unit
     character = Character.query.get_or_404(character_id)
     logitem = GameLog.query.filter_by(name="BattleLog").first()
     from commands import execute_code # commands.pyから関数をインポート
     if request.method == 'POST':
         code_input = request.form.get('command-input', '').strip()  # None の場合は空文字列を使用
-        actor =  request.form['actor-selection']
-        if actor == "自分":
-            actor = character.label
+        actor_name =  request.form['actor-selection']
+        if actor_name == "自分":
+            actor_name = character.label
         targets = request.form.getlist('target-selection')
 
         if code_input:  # 空でない場合のみ処理を実行
-            result = execute_code(code_input,actor,targets)
+            code_to_execute = code_input
+
+            # 入力されたコマンドに一致するUserCommandを探す
+            matched_command = UserCommand.query.filter(
+                (UserCommand.related_id == character.id) | (UserCommand.related_id == 0),
+                UserCommand.command == code_input
+            ).first()
+
+            if matched_command:
+                commands_to_prepend = []
+                actor_unit = Unit.query.filter_by(name=actor_name).first()
+                if actor_unit:
+                    if matched_command.use_sp1 and actor_unit.sp1:
+                        commands_to_prepend.append(actor_unit.sp1)
+                    if matched_command.use_sp2 and actor_unit.sp2:
+                        commands_to_prepend.append(actor_unit.sp2)
+                    if matched_command.use_sp3 and actor_unit.sp3:
+                        commands_to_prepend.append(actor_unit.sp3)
+                
+                if commands_to_prepend:
+                    code_to_execute = ";".join(commands_to_prepend) + f";{code_input}"
+
+            result = execute_code(code_to_execute, actor_name, targets)
             battle_log = logitem.log.split('\n') if logitem and logitem.log else []
             battle_log.append(result)
             log_text = '\n'.join(battle_log)
@@ -793,7 +756,7 @@ def battle_command(character_id):
             log_update(result) 
             return jsonify({'result': [result]})
 
-    return redirect(url_for('battlefield', character_id=character_id))
+    return redirect(url_for('battlefield', character_id=character.id))
 
 
 # 新しいルートの追加
@@ -829,6 +792,9 @@ def save_string(character_id):
     string_name = request.form.get('string_name')
     string_content = request.form.get('string_content')
     string_explain = request.form.get('string_explain')
+    use_sp1 = 'use_sp1' in request.form
+    use_sp2 = 'use_sp2' in request.form
+    use_sp3 = 'use_sp3' in request.form
     
     # 保存された文字列を追加
     saved_strings.append({'name': string_name, 'content': string_content})
@@ -842,7 +808,10 @@ def save_string(character_id):
                 related_id=character_id,
                 creator=character.label,
                 command=string_content,
-                explain=string_explain
+                explain=string_explain,
+                use_sp1=use_sp1,
+                use_sp2=use_sp2,
+                use_sp3=use_sp3
             )
             db.session.add(new_commands)
             db.session.commit()
@@ -882,6 +851,9 @@ def edit_command(character_id,command_id):
             command.name = request.form['name']
             command.command = request.form['command']
             command.explain = request.form['explain']
+            command.use_sp1 = 'use_sp1' in request.form
+            command.use_sp2 = 'use_sp2' in request.form
+            command.use_sp3 = 'use_sp3' in request.form
             db.session.add(command)
             db.session.commit()
         elif action == 'delete':
@@ -900,7 +872,7 @@ def unit(character_id):
     from dataclass import Character, Unit, SubCharacter
     character = Character.query.get_or_404(character_id)
     palyer_units = Unit.query.filter_by(type="player").all()
-    monsters = SubCharacter.query.filter_by(related_id=character_id).all()
+    monsters = SubCharacter.query.filter_by(related_id=character.id).all()
     cpucharacters = SubCharacter.query.filter_by(type="CPU").all()
 
     monster_units=[]
@@ -1008,6 +980,9 @@ def edit_unit(character_id,unit_id):
             unit.知識ボーナス = request.form[f'knowbonus-{unit_id}']
             unit.回復ボーナス = request.form[f'healbonus-{unit_id}']
             unit.魔法行使判定 = request.form[f'magicchallengebonus-{unit_id}']
+            unit.sp1 = request.form[f'sp1-{unit_id}']
+            unit.sp2 = request.form[f'sp2-{unit_id}']
+            unit.sp3 = request.form[f'sp3-{unit_id}']
 
             unit.detail = request.form[f'detail-{unit_id}']
             db.session.add(unit)
@@ -1028,6 +1003,9 @@ def edit_unit(character_id,unit_id):
             unit.先制力 = request.form[f'quickness-{unit_id}']
             unit.魔物知識要求値 = request.form[f'Require_knowledge-{unit_id}']
             unit.弱点 = request.form[f'weakpoint-{unit_id}']
+            unit.sp1 = request.form[f'sp1-{unit_id}']
+            unit.sp2 = request.form[f'sp2-{unit_id}']
+            unit.sp3 = request.form[f'sp3-{unit_id}']
             unit.詳細 = request.form[f'detail-{unit_id}']
             db.session.add(unit)
             db.session.commit()
@@ -1126,6 +1104,7 @@ def add_skill(character_id):
 @app.route('/edit_skill/<int:character_id>/<int:skill_id>', methods=['POST'])
 def edit_skill(character_id,skill_id):
     from dataclass import Skill
+
     if request.method == 'POST':
         action = request.form.get('action')  # クリックされたボタンのvalueを取得
         mySkill = Skill.query.filter_by(id=skill_id).first()
@@ -1242,6 +1221,44 @@ def commandlist(character_id):
     return render_template('commandlist.html', character=character, commands=commands, basic_commands=basic_commands,
                            caliculation_commands=caliculation_commands,condition_commands=condition_commands,
                            attack_commands=attack_commands,challenge_commands=challenge_commands)
+
+@app.route('/map/create/<int:character_id>', methods=['GET', 'POST'])
+def create_map(character_id):
+    from dataclass import Character, Map
+    character = Character.query.get_or_404(character_id)
+
+    if request.method == 'POST':
+        map_name = request.form.get('name').strip()
+        map_description = request.form.get('description').strip()
+
+        if map_name:
+            file = request.files.get('image')
+            image_filename = None
+            if file and allowed_file(file.filename):
+                image_filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], image_filename))
+
+            new_map = Map(
+                name=map_name,
+                description=map_description,
+                image_file=image_filename,
+                related_id=character.id
+            )
+            db.session.add(new_map)
+            db.session.commit()
+            flash(f'{map_name}マップを作成しました。')
+            return redirect(url_for('map_list', character_id=character.id))
+        else:
+            flash('マップ名を入力してください。')
+
+    return render_template('create_map.html', character=character)
+
+@app.route('/map/list/<int:character_id>')
+def map_list(character_id):
+    from dataclass import Character, Map
+    character = Character.query.get_or_404(character_id)
+    maps = Map.query.filter_by(related_id=character.id).all()
+    return render_template('map_list.html', character=character, maps=maps)
 
 # SocketIOイベントのハンドラを追加
 @socketio.on('connect')
