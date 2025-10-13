@@ -6,6 +6,7 @@ from jinja2 import Template
 from flask_socketio import SocketIO
 import os
 from werkzeug.utils import secure_filename
+import json
 
 db = SQLAlchemy()
 
@@ -1230,6 +1231,8 @@ def create_map(character_id):
     if request.method == 'POST':
         map_name = request.form.get('name').strip()
         map_description = request.form.get('description').strip()
+        map_width = request.form.get('width', 20, type=int)
+        map_height = request.form.get('height', 20, type=int)
 
         if map_name:
             file = request.files.get('image')
@@ -1242,7 +1245,10 @@ def create_map(character_id):
                 name=map_name,
                 description=map_description,
                 image_file=image_filename,
-                related_id=character.id
+                related_id=character.id,
+                width=map_width,
+                height=map_height,
+                tile_data=json.dumps([])
             )
             db.session.add(new_map)
             db.session.commit()
@@ -1260,6 +1266,23 @@ def map_list(character_id):
     maps = Map.query.filter_by(related_id=character.id).all()
     return render_template('map_list.html', character=character, maps=maps)
 
+@app.route('/map/edit/<int:map_id>', methods=['GET', 'POST'])
+def map_editor(map_id):
+    from dataclass import Map
+    map_obj = Map.query.get_or_404(map_id)
+
+    if request.method == 'POST':
+        data = request.get_json()
+        tile_data = data.get('tile_data')
+        if tile_data:
+            map_obj.tile_data = json.dumps(tile_data)
+            db.session.add(map_obj)
+            db.session.commit()
+            return jsonify(success=True)
+        return jsonify(success=False, message='No tile data provided')
+
+    return render_template('map_editor.html', map=map_obj, character=map_obj.character) # Assuming Map has a backref to Character
+
 # SocketIOイベントのハンドラを追加
 @socketio.on('connect')
 def handle_connect():
@@ -1267,3 +1290,7 @@ def handle_connect():
 
 if __name__ == "__main__":
     socketio.run(port=5888, host="0.0.0.0", debug=True)
+
+@app.route('/debug_grid')
+def debug_grid():
+    return render_template('debug_grid.html')

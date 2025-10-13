@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Map Editor{% endblock %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-silver-400 mb-4">マップエディタ - {{ map.name }}</h1>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Tile Palette -->
+            <div class="w-full lg:w-1/4 bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+                <h2 class="text-xl font-semibold text-white mb-4">タイルパレット</h2>
+                <div id="tile-palette" class="grid grid-cols-2 gap-4">
+                    <div class="tile-item w-8 h-8 bg-gray-600 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="empty" data-width="1" data-height="1">空 (1x1)</div>
+                    <div class="tile-item w-8 h-8 bg-green-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="small_floor" data-width="1" data-height="1">小床 (1x1)</div>
+                    <div class="tile-item w-16 h-16 bg-green-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="medium_floor" data-width="2" data-height="2">中床 (2x2)</div>
+                    <div class="tile-item w-32 h-32 bg-green-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="large_floor" data-width="4" data-height="4">大床 (4x4)</div>
+                    <div class="tile-item w-16 h-8 bg-yellow-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="small_road" data-width="2" data-height="1">小道 (2x1)</div>
+                    <div class="tile-item w-8 h-16 bg-yellow-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="small_road_vertical" data-width="1" data-height="2">小道 (1x2)</div>
+                    <div class="tile-item w-24 h-16 bg-yellow-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="medium_road" data-width="3" data-height="2">中道 (2x3)</div>
+                    <div class="tile-item w-16 h-24 bg-yellow-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="medium_road_vertical" data-width="2" data-height="3">中道 (3x2)</div>
+                    <div class="tile-item w-40 h-24 bg-yellow-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="large_road" data-width="5" data-height="3">大道 (3x5)</div>
+                    <div class="tile-item w-24 h-40 bg-yellow-700 flex items-center justify-center cursor-pointer border-2 border-transparent hover:border-blue-500" data-tile-type="large_road_vertical" data-width="3" data-height="5">大道 (5x3)</div>
+                </div>
+            </div>
+
+            <!-- Map Grid and Controls -->
+            <div class="w-full lg:w-3/4 bg-gray-800 p-6 rounded-lg shadow-md border border-gray-700">
+                <h2 class="text-xl font-semibold text-white mb-4">マップグリッド</h2>
+                <div id="map-grid" class="grid gap-px bg-gray-700 border border-gray-600" style="width: fit-content;">
+                    <!-- Grid cells will be rendered here by JavaScript -->
+                </div>
+                <button id="save-map-button" class="mt-6 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    マップを保存
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const mapGrid = document.getElementById('map-grid');
+        const tilePalette = document.getElementById('tile-palette');
+        const saveMapButton = document.getElementById('save-map-button');
+        const mapWidth = {{ map.width | default(20) }};
+        const mapHeight = {{ map.height | default(20) }};
+        const cellSize = 32;
+
+        let selectedTileType = 'empty';
+        let selectedTileWidth = 1;
+        let selectedTileHeight = 1;
+        let mapData;
+        let highlightedCells = [];
+
+        // Initialize mapData
+        const initialTileData = `{{ map.tile_data | safe }}`;
+        try {
+            const parsedData = JSON.parse(initialTileData);
+            if (Array.isArray(parsedData) && (parsedData.length === 0 || Array.isArray(parsedData[0]))) {
+                if (parsedData.length === 0) {
+                    mapData = Array(mapHeight).fill(null).map(() => Array(mapWidth).fill('empty'));
+                } else {
+                    // Ensure data is string-based
+                    if (typeof parsedData[0][0] === 'object') {
+                         mapData = parsedData.map(row => row.map(cell => cell.type || 'empty'));
+                    } else {
+                         mapData = parsedData;
+                    }
+                }
+            } else {
+                throw new Error("Invalid data format");
+            }
+        } catch (e) {
+            mapData = Array(mapHeight).fill(null).map(() => Array(mapWidth).fill('empty'));
+        }
+
+        function handleMouseOver(event) {
+            const cell = event.currentTarget;
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+
+            handleMouseOut();
+
+            for (let i = 0; i < selectedTileHeight; i++) {
+                for (let j = 0; j < selectedTileWidth; j++) {
+                    const targetX = x + j;
+                    const targetY = y + i;
+                    if (targetY < mapHeight && targetX < mapWidth) {
+                        const targetCell = mapGrid.querySelector(`[data-x='${targetX}'][data-y='${targetY}']`);
+                        if (targetCell) {
+                            targetCell.classList.add('bg-blue-500', 'opacity-50');
+                            highlightedCells.push(targetCell);
+                        }
+                    }
+                }
+            }
+        }
+
+        function handleMouseOut() {
+            highlightedCells.forEach(cell => {
+                cell.classList.remove('bg-blue-500', 'opacity-50');
+            });
+            highlightedCells = [];
+        }
+
+        // Function to render the grid
+        function renderGrid() {
+            mapGrid.innerHTML = '';
+            mapGrid.style.gridTemplateColumns = `repeat(${mapWidth}, ${cellSize}px)`;
+            mapGrid.style.gridTemplateRows = `repeat(${mapHeight}, ${cellSize}px)`;
+            mapGrid.style.width = `${mapWidth * cellSize}px`;
+            mapGrid.style.height = `${mapHeight * cellSize}px`;
+            mapGrid.style.display = 'grid';
+
+            for (let y = 0; y < mapHeight; y++) {
+                for (let x = 0; x < mapWidth; x++) {
+                    const tileType = mapData[y][x];
+                    const cell = document.createElement('div');
+                    cell.classList.add('grid-cell', 'border', 'border-gray-700', 'cursor-pointer');
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.style.backgroundColor = getTileColor(tileType);
+                    cell.addEventListener('click', handleCellClick);
+                    cell.addEventListener('mouseover', handleMouseOver);
+                    cell.addEventListener('mouseout', handleMouseOut);
+                    mapGrid.appendChild(cell);
+                }
+            }
+        }
+
+        // Function to get tile color based on type
+        function getTileColor(type) {
+            switch (type) {
+                case 'empty': return '#4a5568'; // Gray
+                case 'small_floor':
+                case 'medium_floor':
+                case 'large_floor': return '#38a169'; // Green
+                case 'small_road':
+                case 'medium_road':
+                case "small_road_vertical":
+                case "medium_road_vertical":
+                case "large_road_vertical":
+                case 'large_road': return '#d69e2e'; // Dark Yellow
+                default: return '#4a5568';
+            }
+        }
+
+        // Handle tile palette selection
+        tilePalette.addEventListener('click', (event) => {
+            const target = event.target.closest('.tile-item');
+            if (target) {
+                document.querySelectorAll('.tile-item').forEach(item => item.classList.remove('border-blue-500'));
+                target.classList.add('border-blue-500');
+                selectedTileType = target.dataset.tileType;
+                selectedTileWidth = parseInt(target.dataset.width);
+                selectedTileHeight = parseInt(target.dataset.height);
+            }
+        });
+
+        // Placement logic
+        function handleCellClick(event) {
+            const cell = event.currentTarget;
+            const x = parseInt(cell.dataset.x);
+            const y = parseInt(cell.dataset.y);
+
+            for (let i = 0; i < selectedTileHeight; i++) {
+                for (let j = 0; j < selectedTileWidth; j++) {
+                    const targetX = x + j;
+                    const targetY = y + i;
+                    if (targetY < mapHeight && targetX < mapWidth) {
+                        mapData[targetY][targetX] = selectedTileType;
+                    }
+                }
+            }
+            renderGrid();
+        }
+
+        renderGrid();
+
+        // Save map data to backend
+        saveMapButton.addEventListener('click', () => {
+            fetch('{{ url_for('map_editor', map_id=map.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ tile_data: mapData })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('マップが保存されました！');
+                } else {
+                    alert('マップの保存に失敗しました: ' + data.message);
+                }
+            })
+            .catch(error => console.error('Error saving map:', error));
+        });
+    });
+</script>
+{% endblock %}

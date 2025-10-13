@@ -669,6 +669,10 @@ class Map(db.Model):
     description = db.Column(db.Text, nullable=True)
     image_file = db.Column(db.String(100), nullable=True)
     related_id = db.Column(db.Integer, db.ForeignKey('Character.id'), nullable=False)
+    character = db.relationship('Character', backref='maps', lazy=True)
+    tile_data = db.Column(db.Text, nullable=True)
+    width = db.Column(db.Integer, default=20, nullable=False)
+    height = db.Column(db.Integer, default=20, nullable=False)
 
     def __repr__(self):
         return f"<Map(id={self.id}, name='{self.name}')>"

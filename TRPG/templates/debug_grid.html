@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Grid Debug</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mx-auto p-4">
+        <h1 class="text-2xl font-bold mb-4">Grid Debug</h1>
+        <div id="map-grid" class="grid">
+            <!-- Grid will be rendered here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mapGrid = document.getElementById('map-grid');
+
+            if (mapGrid) {
+                const mapWidth = 20;
+                const mapHeight = 20;
+                const cellSize = 32;
+
+                mapGrid.innerHTML = '';
+                mapGrid.style.gridTemplateColumns = `repeat(${mapWidth}, ${cellSize}px)`;
+                mapGrid.style.gridTemplateRows = `repeat(${mapHeight}, ${cellSize}px)`;
+                mapGrid.style.width = `${mapWidth * cellSize}px`;
+                mapGrid.style.height = `${mapHeight * cellSize}px`;
+                mapGrid.style.display = 'grid'; // Explicitly set display to grid
+
+                for (let y = 0; y < mapHeight; y++) {
+                    for (let x = 0; x < mapWidth; x++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('border', 'border-gray-700');
+                        cell.style.width = `${cellSize}px`;
+                        cell.style.height = `${cellSize}px`;
+                        cell.style.backgroundColor = '#4a5568'; // Gray
+                        mapGrid.appendChild(cell);
+                    }
+                }
+            } else {
+                console.error('map-grid element not found');
+            }
+        });
+    </script>
+</body>
+</html>
